@@ -18,18 +18,18 @@ class Window:
         self.run = WAIT
         self.size = size
         self.name = name
+        self.model = LeNet
         cv2.namedWindow(name)
         self.scale = size >> 5
         self.image = self.clear()
-        self.classifier = LeNet()
         cv2.setMouseCallback(name, self.callback)
-        self.classifier.load_state_dict(torch.load("model/LeNet.pt"))
+        self.model.load_state_dict(torch.load("model/LeNet.pt"))
 
     def show(self) -> None:
         """
         Program main loop.
         """
-        self.classifier.eval()
+        self.model.eval()
         while self.run:
             image = cv2.copyMakeBorder(self.image, 0, self.size >> 4, 0, 0,
                                        cv2.BORDER_CONSTANT, value=255)
@@ -53,11 +53,10 @@ class Window:
         """
         return ~np.zeros((self.size, self.size), np.uint8)
 
-    def callback(self, event, x, y, *params):
+    def callback(self, event, x, y, *_):
         """
         OpenCV mouse callback function.
         """
-        assert len(params) == 2
         if event == cv2.EVENT_RBUTTONUP:
             self.run = WAIT
             self.image = self.clear()
@@ -74,7 +73,7 @@ class Window:
         """
         Identify the image, return identification result and similarity.
         """
-        prob = np.exp(self.classifier(torch.reshape(torch.tensor(cv2.threshold(
+        prob = np.exp(self.model(torch.reshape(torch.tensor(cv2.threshold(
             cv2.resize(self.image, size), 127, 1, cv2.THRESH_BINARY_INV
         )[1], dtype=torch.float32), (1, 1) + size))[0].detach().numpy())
         argmax = np.argmax(prob)

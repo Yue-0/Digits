@@ -4,32 +4,40 @@ __English__ | [简体中文](docs/README_cn.md)
 
 ## Brief Introduction
 
-This project is the final assignment of my sophomore machine learning course.
-This project contents include:
+This project is an assignment for my undergraduate machine learning course. 
+The project content includes:
 
-[PyTorch]: https://pytorch.org/ "PyTorch"
+[LeNet5]: https://ieeexplore.ieee.org/document/726791 "LeNet5"
 
-* Use [PyTorch] to build [LeNet](https://ieeexplore.ieee.org/document/726791) model;
-* Training LeNet model on [MNIST dataset](https://yann.lecun.com/exdb/mnist/);
+* Use [PyTorch](https://pytorch.org/) to build [LeNet5] model;
+* Training [LeNet5] model on [MNIST dataset](https://yann.lecun.com/exdb/mnist/);
 * Make a handwritten digit recognition applet.
+
+## Demo
+
+After running the main program, a whiteboard will appear. 
+Press and hold the left mouse button to write on the whiteboard. 
+After releasing the left mouse button, the program will automatically 
+recognize the numbers on the whiteboard and display the recognition results 
+below the whiteboard. Press the right button of the mouse to clear the whiteboard.
+
+![Demo](docs/demo.gif)
 
 ## File Structure
 
 ```
 Digits
-├── data              # Dataset folder
 ├── docs              # Project Documents
-    ├── images        # Images floder
-        └── demo.png
-    └── README_cn.md  # Chinese description document
-├── model
-    └── __init__.py
+    ├── demo.gif      # Demo
+    └── README_cn.md  # Chinese Description Document
+├── model             # LeNet Package
+    └── __init__.py   # LeNet Model
 ├── install.sh        # Install program
 ├── LICENSE           # LICENSE
-├── main.py           # Handwriting digit recognition application
-├── README.md         # English description document
-├── requirements.txt  # List of requirements
-└── train.py          # Train program
+├── main.py           # Handwriting Digit Recognition Application
+├── README.md         # English Description Document
+├── requirements.txt  # List of Requirements
+└── train.py          # Training Program
 ```
 
 ## Quick Start
@@ -53,27 +61,11 @@ sh install.sh
 python train.py
 ```
 
-* The CPU is used for training and deployment by default;
-* The training Hyper-parameters are defined in lines 96~98 of [train.py](train.py):
-```python
-LR = 1e-4   # learning rate
-EPOCH = 20  # epochs
-BATCH = 64  # batch size
-```
+Due to the simple network structure, 
+this project uses CPU for training and inference.
 
 ### 4.Run the handwritten digit recognition application
 
 ```shell
 python main.py
 ```
-
-After the program runs, a whiteboard will appear.
-You can press and hold the left mouse button to write on the whiteboard.
-After releasing the left mouse button, the program will automatically recognize
-the numbers on the whiteboard and display the recognition results below the
-whiteboard, as shown in the following figure
-(_Currently, only one number can be recognized_)：
-
-![demo](docs/images/demo.png)
-
-You can click the right mouse button to clear the whiteboard.

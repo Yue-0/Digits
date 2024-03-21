@@ -1,6 +1,7 @@
-import random
 from time import time
 from os.path import join
+from random import randint
+from argparse import ArgumentParser
 
 import cv2
 import torch
@@ -15,25 +16,22 @@ class MNIST(data.Dataset):
     def __init__(self, mode: str):
         try:
             self.train = mode == "train"
-            self.augment = (cv2.dilate, cv2.erode)
             self.dataset = datasets.MNIST("data", self.train)
         except RuntimeError:
             raise FileNotFoundError(
-                "Dataset not found, please execute \"python setup.py install\""
+                "Dataset not found, please execute \"sh install.sh\""
             )
         assert mode in ("train", "test"), "mode must be 'train' or 'test'"
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.dataset)
 
-    def __getitem__(self, item):
+    def __getitem__(self, item) -> tuple:
         image, label = self.dataset[item]
         image = np.array(image, np.uint8)
         if self.train:
-            size = random.randint(7, 16)
-            image = cv2.resize(random.choice(self.augment)(
-                image, np.ones([random.randint(1, 3) for _ in range(2)])
-            ), (size << 1,) * 2)
+            size = randint(7, 16)
+            image = cv2.resize(image, (size << 1,) * 2)
             if size < 16:
                 size = 16 - size
                 image = cv2.copyMakeBorder(
@@ -50,9 +48,9 @@ class MNIST(data.Dataset):
 class Model:
     def __init__(self, lr: float):
         self.lr = lr
-        self.net = LeNet()
+        self.net = LeNet
         self.loss = torch.nn.CrossEntropyLoss()
-        self.optimizer = torch.optim.Adam(self.net.parameters(), lr)
+        self.optimizer = torch.optim.SGD(self.net.parameters(), lr)
 
     def fit(self, train: MNIST, test: MNIST, batch: int, epoch: int) -> None:
         """
@@ -64,19 +62,20 @@ class Model:
         """
         best, dataset = 0, data.DataLoader(train, batch, True)
         for e in range(epoch):
-            t = time()
             self.net.train()
+            t, err = time(), 0
             print(f"Epoch: {e + 1}/{epoch}")
             for b, (images, labels) in enumerate(dataset):
                 loss = self.loss(self.net(images), labels)
                 loss.backward()
+                err += loss.item()
                 self.optimizer.step()
                 self.optimizer.zero_grad()
                 num = min((batch * (b + 1)), len(train))
-                speed, progress = num / (time() - t), num / len(train)
+                speed, progress = num / (time() - t + 1e-9), num / len(train)
                 print("\rTrain: [{}>{}]{}%  {}images/s  loss: {:.2f} ".format(
                     "=" * int(25 * progress), "." * (25 - int(25 * progress)),
-                    round(100 * progress), round(speed), loss.item()
+                    round(100 * progress), round(speed), err / (b + 1)
                 ), end=f"eta {round((len(train) - num) / speed)}s")
             print()
             acc = self.score(test, batch)
@@ -96,8 +95,8 @@ class Model:
         t, acc = time(), 0
         for b, (images, labels) in enumerate(data.DataLoader(test, batch)):
             num = min((batch * (b + 1)), len(test))
-            speed, progress = num / (time() - t), num / len(test)
             acc += np.int32(torch.argmax(self.net(images), 1) == labels).sum()
+            speed, progress = num / (time() - t + 1e-9), num / len(test)
             print("\r Eval: [{}>{}]{}%  {}images/s   acc: {:.2f}% ".format(
                 "=" * int(25 * progress), "." * (25 - int(25 * progress)),
                 round(100 * progress), round(speed), 100 * acc / num
@@ -106,9 +105,16 @@ class Model:
         return acc / len(test)
 
 
-LR = 1e-4
-EPOCH = 20
-BATCH = 64
-
 if __name__ == "__main__":
-    Model(LR).fit(MNIST("train"), MNIST("test"), BATCH, EPOCH)
+    args = ArgumentParser()
+    args.add_argument(
+        "--batch", type=int, default=64, help="Batch size. Default: 64"
+    )
+    args.add_argument(
+        "--epoch", type=int, default=10, help="Training epoch. Default: 10"
+    )
+    args.add_argument(
+        "--lr", type=float, default=0.1, help="Learning rate. Default: 0.1"
+    )
+    args = args.parse_args()
+    Model(args.lr).fit(MNIST("train"), MNIST("test"), args.batch, args.epoch)
