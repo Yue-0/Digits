@@ -55,7 +55,7 @@ sh install.sh
 ### 3.训练模型
 
 ```shell
-python train.py --lr=0.1 --epoch=10 --batch=64
+python train.py --lr 0.1 --epoch 10 --batch 64
 ```
 
 由于网络结构简单，本项目使用 CPU 进行训练和推理。

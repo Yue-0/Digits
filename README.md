@@ -58,7 +58,7 @@ sh install.sh
 ### 3.Train model
 
 ```shell
-python train.py
+python train.py --lr 0.1 --epoch 10 --batch 64
 ```
 
 Due to the simple network structure, 
